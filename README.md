@@ -5,10 +5,10 @@ We will probably add:
 
 ### Anti-Aliasing
 
-## Either:
+### Either:
 
-### Varying and Multiple Lights
+#### Varying and Multiple Lights
 
-### Or
+#### Or
 
-### Shading and Multiple Lights
+#### Shading and Multiple Lights
