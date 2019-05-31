@@ -5,4 +5,10 @@ We will probably add:
 
 ### Anti-Aliasing
 
-### Some New Primitive Shapes
+## Either:
+
+### Varying and Multiple Lights
+
+### Or
+
+### Shading and Multiple Lights
