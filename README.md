@@ -9,6 +9,6 @@ We will probably add:
 
 #### Varying and Multiple Lights
 
-#### Or
+Or
 
 #### Shading and Multiple Lights
