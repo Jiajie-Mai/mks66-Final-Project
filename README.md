@@ -3,7 +3,7 @@ Final Project for the class mks66.
 
 We will probably add:
 
-### Anti-Aliasing
+### Shading 
 
 ### Either:
 
@@ -11,4 +11,4 @@ We will probably add:
 
 Or
 
-#### Shading and Multiple Lights
+#### Anti-Aliasing and Multiple Lights
