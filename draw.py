@@ -323,93 +323,16 @@ def add_point( matrix, x, y, z=0 ):
 
 
 
-# def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
-#
-#     #swap points if going right -> left
-#     if x0 > x1:
-#         xt = x0
-#         yt = y0
-#         zt = z0
-#         x0 = x1
-#         y0 = y1
-#         z0 = z1
-#         x1 = xt
-#         y1 = yt
-#         z1 = zt
-#
-#     x = x0
-#     y = y0
-#     z = z0
-#     A = 2 * (y1 - y0)
-#     B = -2 * (x1 - x0)
-#     wide = False
-#     tall = False
-#
-#     if ( abs(x1-x0) >= abs(y1 - y0) ): #octants 1/8
-#         wide = True
-#         loop_start = x
-#         loop_end = x1
-#         dx_east = dx_northeast = 1
-#         dy_east = 0
-#         d_east = A
-#         distance = x1 - x + 1
-#         if ( A > 0 ): #octant 1
-#             d = A + B/2
-#             dy_northeast = 1
-#             d_northeast = A + B
-#         else: #octant 8
-#             d = A - B/2
-#             dy_northeast = -1
-#             d_northeast = A - B
-#
-#     else: #octants 2/7
-#         tall = True
-#         dx_east = 0
-#         dx_northeast = 1
-#         distance = abs(y1 - y) + 1
-#         if ( A > 0 ): #octant 2
-#             d = A/2 + B
-#             dy_east = dy_northeast = 1
-#             d_northeast = A + B
-#             d_east = B
-#             loop_start = y
-#             loop_end = y1
-#         else: #octant 7
-#             d = A/2 - B
-#             dy_east = dy_northeast = -1
-#             d_northeast = A - B
-#             d_east = -1 * B
-#             loop_start = y1
-#             loop_end = y
-#
-#     dz = (z1 - z0) / distance if distance != 0 else 0
-#
-#     while ( loop_start < loop_end ):
-#         plot( screen, zbuffer, color, x, y, z )
-#         if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
-#              (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
-#
-#             x+= dx_northeast
-#             y+= dy_northeast
-#             d+= d_northeast
-#         else:
-#             x+= dx_east
-#             y+= dy_east
-#             d+= d_east
-#         z+= dz
-#         loop_start+= 1
-#     plot( screen, zbuffer, color, x, y, z )
-
 def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
 
     #swap points if going right -> left
     if x0 > x1:
-        xt = x0 * 2
-        yt = y0 * 2
-        zt = z0 * 2
-        x0 = x1 * 2
-        z0 = z1 * 2
-        y0 = y1 * 2
+        xt = x0
+        yt = y0
+        zt = z0
+        x0 = x1
+        y0 = y1
+        z0 = z1
         x1 = xt
         y1 = yt
         z1 = zt
