@@ -22,10 +22,10 @@ SPECULAR_EXP = 4
 
 #lighting functions
 def get_lighting(normal, view, ambient, light, symbols, reflect ):
-
+    for l in lights:
+        normalize(light[LOCATION])
     n = normal[:]
     normalize(n)
-    normalize(light[LOCATION])
     normalize(view)
     r = symbols[reflect][1]
 
@@ -67,7 +67,7 @@ def calculate_specular(light, reflect, view, normal):
     n[0] = (normal[0] * result) - light[LOCATION][0]
     n[1] = (normal[1] * result) - light[LOCATION][1]
     n[2] = (normal[2] * result) - light[LOCATION][2]
-
+    
     result = dot_product(n, view)
     result = result if result > 0 else 0
     result = pow( result, SPECULAR_EXP )
