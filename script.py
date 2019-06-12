@@ -99,12 +99,12 @@ def run(filename):
     ambient = [50,
                50,
                50]
-    light = [[0.5,
+    light = [[[0.5,
               0.75,
               1],
              [255,
               255,
-              255]]
+              255]]]
 
     color = [0, 0, 0]
     symbols['.white'] = ['constants',
@@ -149,6 +149,8 @@ def run(filename):
                 draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
                 tmp = []
                 reflect = '.white'
+            elif c == "light":
+                light.append([ [args[0], args[1], args[2]], [args[3], args[4], args[5]] ])
             elif c == 'sphere':
                 if command['constants']:
                     reflect = command['constants']
