@@ -9,7 +9,7 @@ box -100 125 50 200 250 100
 push
 move 0 175 0
 rotate y 90
-sphere shiny_purple 0 0 0 50
+sphere 0 0 0 50
 pop
 //LEFT ARM
 push
