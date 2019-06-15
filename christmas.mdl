@@ -1,0 +1,44 @@
+constants c1 0.2 0.3 0.7 0.0 0.0 0.0 0.0 0.3 0.7
+constants c2 0.3 0.0 0.3 0.2 0.5 0.3 0.1 0.1 0.2
+constants c3 0.1 0.3 0.4 0.2 0.5 0.3 0.2 0.1 0.2
+constants c4 0.1 0.8 0.3 0.2 0.9 0.3 0.7 0.1 0.2
+frames 50
+basename christmas_50
+light white 0.5 0.75 1 255 255 255 wleft wmid wright
+light red 50 0 0 255 0 0 rleft rmid rright
+light green -50 0 0 0 255 0 gleft gmid gright
+push
+move 150 300 100
+push
+rotate x 100
+push
+move 250 250 250 standard
+rotate z 360 standard
+sphere c1 0 -150 0 70
+pop
+push
+move 100 100 100 standard
+rotate y 150 standard
+torus c2 0 0 0 25 100
+pop
+push
+move 150 0 0 half
+torus c3 50 50 25 25 80
+pop
+push
+scale 2 2 2 half
+torus c4 75 0 0 25 100
+
+vary wleft 0 49 0.5 0.5
+vary wmid 0 49 0.75 0.75
+vary wright 0 49 1 1
+vary rleft 0 49 50 -50
+vary rmid 0 24 0 75
+vary rright 25 49 75 0
+vary gleft 0 49 -50 50
+vary gmid 0 24 110 0
+vary gright 25 49 0 110
+
+vary standard 0 49 0 1
+vary half 0 24 0 1
+vary half 25 49 1 0

@@ -86,15 +86,21 @@ def run(filename):
         print "Parsing failed."
         return
 
+    ogLight= {}
+    for c in commands:
+        if c['op'] == 'light':
+            ogLight[c['light']] = [symbols[c['light']][1]['location'], symbols[c['light']][1]['color']]
+    # print(ogLight)
+
     view = [0,
             0,
             1];
     ambient = [50,
                50,
                50]
-    light = [
-        [[-50, 0.75, 1],
-        [255,255,255]],
+    light = {}
+        # [[-50, 0.75, 1],
+        # [255,255,255]],
 
              # [[0.5, 0.75, 1],
              # [0, 255, 255]],
@@ -104,7 +110,7 @@ def run(filename):
 
              # [[0.5, 0.75, 1],
              # [0, 255, 0]]
-              ]
+
 
     color = [0, 0, 0]
     symbols['.white'] = ['constants',
@@ -115,7 +121,7 @@ def run(filename):
 
     (name, num_frames) = first_pass(commands)
     knobs = second_pass(commands, num_frames)
-
+    # print(knobs)
     for i in range(int(num_frames)):
         tmp = new_matrix()
         ident( tmp )
@@ -133,11 +139,13 @@ def run(filename):
             for knob in knobs[i]:
                 symbols[knob][1] = knobs[i][knob]
 
+
         for command in commands:
-            print command
+            # print command
             c = command['op']
             args = command['args']
             kvalue = 1
+
 
             if c == 'box':
                 if command['constants']:
@@ -150,7 +158,17 @@ def run(filename):
                 tmp = []
                 reflect = '.white'
             elif c == "light":
-                light.append([ [args[0], args[1], args[2]], [args[3], args[4], args[5]] ])
+                light_attributes = ogLight[command['light']]
+                newLight = [ light_attributes[0], light_attributes[1]]
+                if command['knob']:
+                    xkvalue = symbols[command["knob"][0]][1]
+                    ykvalue = symbols[command['knob'][1]][1]
+                    zkvalue = symbols[command['knob'][2]][1]
+                    newLight[0][0] = xkvalue
+                    newLight[0][1] = ykvalue
+                    newLight[0][2] = zkvalue
+                light[command['light']] = newLight
+                print(newLight)
             elif c == 'sphere':
                 if command['constants']:
                     reflect = command['constants']

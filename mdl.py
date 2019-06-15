@@ -14,41 +14,41 @@ tokens = (
     "AMBIENT",
     "TORUS",
     "SPHERE",
-    "BOX", 
-    "LINE", 
-    "MESH", 
-    "TEXTURE", 
-    "SET", 
-    "MOVE", 
-    "SCALE", 
-    "ROTATE", 
-    "BASENAME", 
-    "SAVE_KNOBS", 
-    "TWEEN", 
-    "FRAMES", 
-    "VARY", 
-    "PUSH", 
-    "POP", 
-    "SAVE", 
-    "GENERATE_RAYFILES", 
-    "SHADING", 
-    "SHADING_TYPE", 
-    "SET_KNOBS", 
-    "FOCAL", 
-    "DISPLAY", 
-    "SCREEN", 
-    "WEB", 
+    "BOX",
+    "LINE",
+    "MESH",
+    "TEXTURE",
+    "SET",
+    "MOVE",
+    "SCALE",
+    "ROTATE",
+    "BASENAME",
+    "SAVE_KNOBS",
+    "TWEEN",
+    "FRAMES",
+    "VARY",
+    "PUSH",
+    "POP",
+    "SAVE",
+    "GENERATE_RAYFILES",
+    "SHADING",
+    "SHADING_TYPE",
+    "SET_KNOBS",
+    "FOCAL",
+    "DISPLAY",
+    "SCREEN",
+    "WEB",
     "CO"
 )
 
 reserved = {
-    "x" : "XYZ", 
-    "y" : "XYZ", 
-    "z" : "XYZ", 
-    "screen" : "SCREEN", 
+    "x" : "XYZ",
+    "y" : "XYZ",
+    "z" : "XYZ",
+    "screen" : "SCREEN",
     "light" : "LIGHT",
     "constants" : "CONSTANTS",
-    "save_coord_system" : "SAVE_COORDS", 
+    "save_coord_system" : "SAVE_COORDS",
     "camera" : "CAMERA",
     "ambient" : "AMBIENT",
     "torus" : "TORUS",
@@ -310,9 +310,12 @@ def p_command_constants(p):
     commands.append(cmd)
 
 def p_command_light(p):
-    "command : LIGHT SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"
-    symbols[p[2]] = ['light', {'location' : p[3:6], 'color' : p[6:]}]
-    cmd = {'op':p[1], 'args' : None, 'light' : p[2] }
+    """command : LIGHT SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER
+               | LIGHT SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER SYMBOL SYMBOL SYMBOL"""
+    symbols[p[2]] = ['light', {'location' : p[3:6], 'color' : p[6:9]}]
+    cmd = {'op':p[1], 'args' : None, 'light' : p[2] , 'knob' : None}
+    if len(p) == 12:
+        cmd['knob'] = [p[9], p[10], p[11]]
     commands.append(cmd)
 
 def p_command_shading(p):

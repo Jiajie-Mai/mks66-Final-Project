@@ -80,4 +80,4 @@ def make_animation( name ):
     print 'Saving animation as ' + name
     f = os.fork()
     if f == 0:
-        os.execlp('convert', 'convert', '-delay', '1.7', name_arg, name)
+        os.execlp('convert', 'convert', '-delay', '5', name_arg, name)
