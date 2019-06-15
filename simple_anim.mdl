@@ -1,3 +1,5 @@
+shading phong
+light light0 0 0 0 255 255 255
 frames 50
 basename simple_50
 push

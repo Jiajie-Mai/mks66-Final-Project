@@ -2,6 +2,12 @@ import mdl
 from display import *
 from matrix import *
 from draw import *
+import os
+
+is_anim = False
+num_frames = 1
+base = "basename"
+knobs = []
 
 """======== first_pass( commands ) ==========
   Checks the commands array for any animation commands
@@ -14,29 +20,33 @@ from draw import *
   to some default value, and print out a message
   with the name being used.
   ==================== """
+
+  #Thank you Andrew Shao for helping me fix my script to implement new intensity feature
 def first_pass( commands ):
 
-    name = 'default'
-    num_frames = 1
+    global num_frames
+    global base
+    global is_anim
     frames = False
-    vary = False
+    basename = False
 
     for command in commands:
-        if command['op'] == 'frames':
-            num_frames = int(command['args'][0])
+        c = command['op']
+        args = command['args']
+
+        if c == 'frames':
             frames = True
-        if command['op'] == 'basename':
-            name = command['args'][0]
-        if command['op'] == 'vary':
-            vary = True
+            is_anim = True
+            num_frames = args[0]
 
-    if vary and not frames:
-        print("Vary was found but not frames, so the program is being stopped.")
-        exit(1)
-    if name == 'default':
-        print("No basename was found, so 'default' is currently being used instead.")
+        elif c == 'basename':
+            is_anim = True
+            found_basename = True
+            base = args[0]
 
-    return (name, num_frames)
+        elif c == 'vary':
+            is_anim = True
+            if not frames: return
 
 """======== second_pass( commands ) ==========
   In order to set the knobs for animation, we need to keep
@@ -51,33 +61,66 @@ def first_pass( commands ):
   from knobs[0] to knobs[frames-1] and add (or modify) the
   dictionary corresponding to the given knob with the
   appropirate value.
-  ===================="""
-def second_pass( commands, num_frames ):
-    frames = [ {} for i in range(num_frames) ]
+  ====================Thank you Hui Min for giving me a hand at the second pass"""
+def second_pass( commands):
+    global knobs
+    global num_frames
+
+    for i in range(int(num_frames)):
+        knobs.append({})
 
     for command in commands:
-        if command["op"] == "vary":
-            sFrame = int(command["args"][0])
-            eFrame = int(command["args"][1])
-            sValue = command["args"][2]
-            eValue = command["args"][3]
+        c = command['op']
+        args = command['args']
 
-        if command['op'] == 'vary':
-            if sFrame >= eFrame or sFrame < 0 or eFrame > num_frames:
-                print("Error, bad starting and/or ending frames.")
-            step = (eValue - sValue) / (eFrame - sFrame)
-            V = sValue
-            for x in range(sFrame, eFrame + 1):
-                frames[x][command['knob']] = V
-                V += step
+        if c == 'vary':
+            knob = command['knob']
+            curr = args[2]
+            if len(args) > 4 and args[4] <= 0: return
+            increment = (args[3] - args[2]) / (args[1] - args[0] + 1)
 
-    return frames
+            for i in range(int(args[0]), int(args[1])+1):
+                if len(args) > 4:
+                    if isinstance(args[4],float):
+                        if increment < 0:
+                            curr = ((increment * (i-args[1]-1)) ** args[4])
+                        else:
+                            curr = (increment * (i+1)) ** args[4]
+                        knobs[i][knob] = curr
+                    elif  args[4] == 'sin':
+                        if increment < 0:
+                            curr = math.sin((increment * (i-args[1]-1) * math.pi/2))
+                        else:
+                            curr = math.sin((increment * (i+1) * math.pi/2))
+                        knobs[i][knob] = curr
+                    elif args[4] == 'cos':
+                        if increment < 0:
+                            curr = 1-math.cos((increment * (i-args[1]-1) * math.pi/2))
+                        else:
+                            curr = 1-math.cos((increment * (i+1) * math.pi/2))
+                        knobs[i][knob] = curr
+                    elif args[4] == 'tan':
+                        if increment < 0:
+                            curr = math.tan((increment * (i-args[1]-1) * math.pi/4))
+                        else:
+                            curr = math.tan((increment * (i+1) * math.pi/4))
+                        knobs[i][knob] = curr
+                    elif args[4] == 'ln':
+                        if increment < 0:
+                            curr = (2-math.log((increment * (i-args[1]-1) * math.e))) ** -1
+                        else:
+                            curr = (2-math.log((increment * (i+1) * math.e))) ** -1
+                        knobs[i][knob] = curr
+                else:
+                    knobs[i][knob] = curr
+                    curr += increment
 
 
 def run(filename):
     """
     This function runs an mdl script
     """
+
     p = mdl.parseFile(filename)
 
     if p:
@@ -86,113 +129,165 @@ def run(filename):
         print "Parsing failed."
         return
 
+    first_pass(commands)
+    second_pass(commands)
+
     view = [0,
             0,
             1];
     ambient = [50,
                50,
                50]
-    light = [
-        [[-50, 0.75, 1],
-        [255,255,255]],
-
-             # [[0.5, 0.75, 1],
-             # [0, 255, 255]],
-
-             # [[50, 0.75, 1],
-             # [66, 244, 203]]
-
-             # [[0.5, 0.75, 1],
-             # [0, 255, 0]]
-              ]
-
+    deflight = [[0.5,
+              0.75,
+              1],
+             [255,
+              255,
+              255]]
+    lights = []
+    areflect = [0.1,
+                0.1,
+                0.1]
+    dreflect = [0.5,
+                0.5,
+                0.5]
+    sreflect = [0.5,
+                0.5,
+                0.5]
+    consts = [areflect[0],dreflect[0],sreflect[0],areflect[1],dreflect[1],
+                  sreflect[1],areflect[2],dreflect[2],sreflect[2]]
+    default = consts[:]
     color = [0, 0, 0]
-    symbols['.white'] = ['constants',
-                         {'red': [0.2, 0.5, 0.5],
-                          'green': [0.2, 0.5, 0.5],
-                          'blue': [0.2, 0.5, 0.5]}]
-    reflect = '.white'
 
-    (name, num_frames) = first_pass(commands)
-    knobs = second_pass(commands, num_frames)
+    tmp = new_matrix()
+    ident( tmp )
 
-    for i in range(int(num_frames)):
-        tmp = new_matrix()
-        ident( tmp )
+    stack = [ [x[:] for x in tmp] ]
+    screen = new_screen()
+    zbuffer = new_zbuffer()
+    tmp = []
+    step_3d = 20
+    consts = ''
+    coords = []
+    coords1 = []
 
-        stack = [ [x[:] for x in tmp] ]
-        screen = new_screen()
-        zbuffer = new_zbuffer()
-        tmp = []
-        step_3d = 20
-        consts = ''
-        coords = []
-        coords1 = []
+    for frame in range(int(num_frames)):
+        if "shading" in symbols.keys():
+            shading = symbols["shading"][1]
+        else:
+            shading = "flat"
 
-        if num_frames > 1:
-            for knob in knobs[i]:
-                symbols[knob][1] = knobs[i][knob]
+        for knob in knobs[frame]:
+            symbols[knob][1] = knobs[frame][knob]
 
         for command in commands:
-            print command
+            #print command
             c = command['op']
             args = command['args']
-            kvalue = 1
+            if (not args == None):
+                args = args[:]
+            if (c in ["move", "scale", "rotate"]) and (not args == None) and ("knob" in command) and (not command["knob"] == None):
+                knob = command["knob"]
+                for i in range(len(args)):
+                    if not isinstance(args[i], basestring):
+                        args[i] = args[i] * symbols[knob][1]
+
+
 
             if c == 'box':
-                if command['constants']:
-                    reflect = command['constants']
+                intensity = [0,0,0]
+                if command['constants'] != None:
+                    consts = symbols[command['constants']][1]
+                    areflect = [consts['red'][0],consts['green'][0],consts['blue'][0]]
+                    dreflect = [consts['red'][1],consts['green'][1],consts['blue'][1]]
+                    sreflect = [consts['red'][2],consts['green'][2],consts['blue'][2]]
+                    if len(consts['blue']) > 3:
+                        intensity[0] = consts['blue'][3]
+                        intensity[1] = consts['blue'][4]
+                        intensity[2] = consts['blue'][5]
+                else:
+                    areflect = [default[0],default[3],default[6]]
+                    dreflect = [default[1],default[4],default[7]]
+                    sreflect = [default[2],default[5],default[8]]
+                if command['cs'] != None:
+                    coords = command['cs']
                 add_box(tmp,
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, areflect, dreflect, sreflect, shading, intensity)
                 tmp = []
-                reflect = '.white'
-            elif c == "light":
-                light.append([ [args[0], args[1], args[2]], [args[3], args[4], args[5]] ])
             elif c == 'sphere':
-                if command['constants']:
-                    reflect = command['constants']
+                intensity = [0,0,0]
+                if command['constants'] != None:
+                    consts = symbols[command['constants']][1]
+                    areflect = [consts['red'][0],consts['green'][0],consts['blue'][0]]
+                    dreflect = [consts['red'][1],consts['green'][1],consts['blue'][1]]
+                    sreflect = [consts['red'][2],consts['green'][2],consts['blue'][2]]
+                    if len(consts['blue']) > 3:
+                        intensity[0] = consts['blue'][3]
+                        intensity[1] = consts['blue'][4]
+                        intensity[2] = consts['blue'][5]
+                else:
+                    areflect = [default[0],default[3],default[6]]
+                    dreflect = [default[1],default[4],default[7]]
+                    sreflect = [default[2],default[5],default[8]]
+                if command['cs'] != None:
+                    coords = command['cs']
                 add_sphere(tmp,
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, areflect, dreflect, sreflect, shading, intensity)
                 tmp = []
-                reflect = '.white'
             elif c == 'torus':
-                if command['constants']:
-                    reflect = command['constants']
+                intensity = [0,0,0]
+                if command['constants'] != None:
+                    consts = symbols[command['constants']][1]
+                    areflect = [consts['red'][0],consts['green'][0],consts['blue'][0]]
+                    dreflect = [consts['red'][1],consts['green'][1],consts['blue'][1]]
+                    sreflect = [consts['red'][2],consts['green'][2],consts['blue'][2]]
+                    if len(consts['blue']) > 3:
+                        intensity[0] = consts['blue'][3]
+                        intensity[1] = consts['blue'][4]
+                        intensity[2] = consts['blue'][5]
+                else:
+                    areflect = [default[0],default[3],default[6]]
+                    dreflect = [default[1],default[4],default[7]]
+                    sreflect = [default[2],default[5],default[8]]
+                if command['cs'] != None:
+                    coords = command['cs']
                 add_torus(tmp,
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, areflect, dreflect, sreflect, shading, intensity)
                 tmp = []
-                reflect = '.white'
             elif c == 'line':
+                if command['constants'] != None:
+                    consts = symbols[command['constants']][1]
+                    areflect = [consts['red'][0],consts['green'][0],consts['blue'][0]]
+                    dreflect = [consts['red'][1],consts['green'][1],consts['blue'][1]]
+                    sreflect = [consts['red'][2],consts['green'][2],consts['blue'][2]]
+                if command['cs0'] != None:
+                    coords = command['cs0']
+                if command['cs1'] != None:
+                    coords1 = command['cs1']
                 add_edge(tmp,
                          args[0], args[1], args[2], args[3], args[4], args[5])
                 matrix_mult( stack[-1], tmp )
                 draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'move':
-                if command["knob"]:
-                    kvalue = symbols[command["knob"]][1]
-                tmp = make_translate(args[0] * kvalue, args[1] * kvalue, args[2] * kvalue)
+                tmp = make_translate(args[0], args[1], args[2])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'scale':
-                if command["knob"]:
-                    kvalue = symbols[command["knob"]][1]
-                tmp = make_scale(args[0] * kvalue, args[1]* kvalue, args[2]* kvalue)
+                tmp = make_scale(args[0], args[1], args[2])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'rotate':
-                if command["knob"]:
-                    kvalue = symbols[command["knob"]][1]
-                theta = args[1] * (math.pi/180) * kvalue
+                theta = args[1] * (math.pi/180)
                 if args[0] == 'x':
                     tmp = make_rotX(theta)
                 elif args[0] == 'y':
@@ -206,13 +301,31 @@ def run(filename):
                 stack.append([x[:] for x in stack[-1]] )
             elif c == 'pop':
                 stack.pop()
+            elif c == 'ambient':
+                ambient = args[:]
+            elif c == 'light':
+                col = symbols[command['light']][1]['color']
+                loca = symbols[command['light']][1]['location']
+                light = [loca,col]
+                lights.append(light)
             elif c == 'display':
                 display(screen)
             elif c == 'save':
                 save_extension(screen, args[0])
-        if num_frames > 1:
-            filename = 'anim/' + name + ('%03d' %int(i))
-            save_extension(screen,filename)
+        if is_anim:
+            if not os.path.exists('anim'):
+                os.mkdir('anim')
+            save_extension(screen, ("./anim/" + base + ("%03d" % int(frame)) + ".png"))
 
-    if num_frames > 1:
-        make_animation(name)
+        tmp = new_matrix()
+        ident( tmp )
+        stack = [ [x[:] for x in tmp] ]
+        screen = new_screen()
+        zbuffer = new_zbuffer()
+        tmp = []
+        lights = []
+        step_3d = 20
+
+    if is_anim:
+        make_animation(base)
+        # end operation loop
